@@ -80,6 +80,7 @@ hdrs = [data.hdr];
 cols = {hdrs.title};
 
 colNames2use = regexprep(cols,cfg0.keys.smr,cfg0.keys.BIDS);
+colNames2use(ismember(colNames2use, cfg.keys.smr2Ignore)) = [];
 
 for cc=1:length(colNames2use)
     key = colNames2use{cc};
@@ -399,10 +400,13 @@ for r=1:nRuns_real
     
     jID = fopen( fullfile(dout_base, sprintf('%s%d%s',fout_base, runNo, cfg0.ext_j) ), 'w');
     
+cols2print = sprintf('\"%s\",',colNames2use{:});
+    cols2print = strip(cols2print,'right',',');
+    
     fprintf(jID, '{\n');
-    fprintf(jID, '   \"SamplingFrequency\": %.1f,\n',           sampleInterv_sec);
-    fprintf(jID, '   \"StartTime\": %.1f,\n',                   relstartSPK_sec(r) );
-    fprintf(jID, '   \"Columns\": [\"%s\",\"%s\",\"%s\"],\n',    colNames2use{:});
+    fprintf(jID, '   \"SamplingFrequency\": %.1f,\n',    sampleInterv_sec);
+    fprintf(jID, '   \"StartTime\": %.1f,\n',            relstartSPK_sec(r) );
+    fprintf(jID, '   \"Columns\": [%s],\n',              cols2print);
     fprintf(jID, '   \"SourceFile\": \"%s\"\n', cfg.file.smr); %% this is not part of BIDS
     fprintf(jID, '}');
     
