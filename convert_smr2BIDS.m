@@ -354,6 +354,9 @@ for r=1:nRuns_real
     end    
 end
 
+
+ntrigs = itrig_run_Z - itrig_run_A + 1;	
+
 %% PLOT to CHECK mats2write
 if cfg.debugPlots   
     if ~isfield(cfg.file, 'debugPlots')
@@ -367,6 +370,17 @@ if cfg.debugPlots
     title('MR triggers received');
     xlabel('MR trigger number');
     ylabel('TR #');
+
+    %% annotate with number of triggers/itrig start and end
+    ntrigs = itrig_run_Z - itrig_run_A + 1;
+w    
+    for ii=1:length(itrig_run_A)
+        text(itrig_run_A(ii), 10, num2str(itrig_run_A(ii)));
+        text(itrig_run_Z(ii), 500, num2str(itrig_run_Z(ii)));
+        
+        text( itrig_run_A(ii) + ntrigs(ii)/2, 1000, sprintf('#=%d',ntrigs(ii)) );
+    end
+    
     subplot(2,1,2);
     plot( data(i.cardiac).imp.adc,'Color',[0.6350, 0.0780, 0.1840]); hold on; plot( data(i.respiratory).imp.adc,'Color',[0.9290, 0.6940, 0.1250]); plot(series_MRtrig*1e4,'.','Color',[0, 0.4470, 0.7410]'); hold off
     title(sprintf('skipped run %d. ', blocks2skip));
@@ -374,7 +388,8 @@ if cfg.debugPlots
     ylabel('volt');
     legend({'cardiac','respiratory','MR trigger'});
 
-    print(figID,'-dpsc2','-append',cfg.file.fplots);
+    print(figID,'-dpsc2','-append',cfg.file.fplots);  %% NOTE APPEND BREAKS IN PARALLEL MODE -- better save as separate pdfs if want to run in parfor loop
+
     % figure; plot(mats2write{1}(:,1)); hold on; plot(mats2write{1}(:,2)); plot(mats2write{1}(:,3)*1e4, 'r.'); hold off
     % figure; plot(mats2write{2}(:,1)); hold on; plot(mats2write{2}(:,2)); plot(mats2write{2}(:,3)*1e4, 'r.'); hold off
     % figure; plot(mats2write{3}(:,1)); hold on; plot(mats2write{3}(:,2)); plot(mats2write{3}(:,3)*1e4, 'r.'); hold off
@@ -407,7 +422,8 @@ cols2print = sprintf('\"%s\",',colNames2use{:});
     fprintf(jID, '   \"SamplingFrequency\": %.1f,\n',    sampleInterv_sec);
     fprintf(jID, '   \"StartTime\": %.1f,\n',            relstartSPK_sec(r) );
     fprintf(jID, '   \"Columns\": [%s],\n',              cols2print);
-    fprintf(jID, '   \"SourceFile\": \"%s\"\n', cfg.file.smr); %% this is not part of BIDS
+    fprintf(jID, '   \"SourceFile\": \"%s\",\n',         cfg.file.smr); %% this is not part of BIDS
+    fprintf(jID, '   \"ntriggerMR\": %d\n',              ntrigs(r));    %% this is not part of BIDS
     fprintf(jID, '}');
     
     fclose(jID);
